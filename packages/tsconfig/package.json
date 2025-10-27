@@ -1,0 +1,7 @@
+{
+  "name": "@social-facelift/tsconfig",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared TypeScript configuration for the Social Facelift monorepo",
+  "files": ["base.json"]
+}

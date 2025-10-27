@@ -1,0 +1,11 @@
+{
+  "name": "@social-facelift/config",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared configuration presets for the Social Facelift monorepo",
+  "exports": {
+    "./eslint": "./eslint/base.cjs",
+    "./jest": "./jest/base.cjs",
+    "./prettier": "./prettier/base.json"
+  }
+}
