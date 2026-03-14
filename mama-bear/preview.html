@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mama Bear — App Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+  body { background: #1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; padding: 40px 20px; }
+
+  h1.preview-title { color: #C7B8EA; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  p.preview-sub { color: #666; font-size: 13px; margin-bottom: 32px; }
+
+  .phone-wrap { position: relative; }
+  .phone {
+    width: 375px;
+    height: 780px;
+    background: #FADADD;
+    border-radius: 48px;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 10px #222, 0 0 0 12px #333;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .notch {
+    width: 120px; height: 28px;
+    background: #111;
+    border-radius: 0 0 18px 18px;
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    z-index: 100;
+  }
+  .status-bar {
+    height: 44px;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 24px 6px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+  }
+  .status-time { font-size: 13px; font-weight: 700; }
+  .status-icons { font-size: 12px; display: flex; gap: 4px; align-items: center; }
+
+  /* Screens */
+  .screen { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+  .screen.active { display: flex; }
+
+  /* Colors */
+  :root {
+    --blush: #FADADD;
+    --coral: #FF6F61;
+    --lavender: #C7B8EA;
+    --indigo: #3F4E76;
+    --gold: #EBC73E;
+    --white: #FFFFFF;
+    --gray: #F5F5F5;
+    --text: #2D2D2D;
+    --mid: #5C5C5C;
+    --light: #9B9B9B;
+  }
+
+  /* ── ONBOARDING ── */
+  #onboarding { background: var(--blush); }
+  .ob-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+  .bear-icon { width: 100px; height: 100px; position: relative; margin-bottom: 24px; }
+  .bear-head { width: 88px; height: 88px; background: #8B6F47; border-radius: 50%; position: absolute; top: 0; left: 6px; }
+  .bear-ear { width: 26px; height: 26px; background: #8B6F47; border-radius: 50%; position: absolute; }
+  .bear-ear-l { top: 4px; left: 8px; }
+  .bear-ear-r { top: 4px; right: 8px; }
+  .bear-inner-ear { width: 14px; height: 14px; background: #C49A6C; border-radius: 50%; position: absolute; }
+  .bear-inner-ear-l { top: 9px; left: 13px; }
+  .bear-inner-ear-r { top: 9px; right: 13px; }
+  .bear-face { width: 68px; height: 68px; background: #A07850; border-radius: 50%; position: absolute; top: 12px; left: 16px; }
+  .bear-eye { width: 9px; height: 9px; background: #2D2D2D; border-radius: 50%; position: absolute; }
+  .bear-eye-l { top: 22px; left: 20px; }
+  .bear-eye-r { top: 22px; right: 20px; }
+  .bear-snout { width: 30px; height: 18px; background: #C49A6C; border-radius: 50%; position: absolute; top: 38px; left: 19px; display: flex; flex-direction: column; align-items: center; }
+  .bear-nose { width: 10px; height: 6px; background: #2D2D2D; border-radius: 50%; margin-top: 3px; }
+  .bear-heart { position: absolute; bottom: 0; right: 2px; font-size: 18px; }
+  .ob-title { font-size: 30px; font-weight: 800; color: var(--indigo); text-align: center; line-height: 1.2; margin-bottom: 14px; }
+  .ob-body-text { font-size: 15px; color: var(--mid); text-align: center; line-height: 1.6; margin-bottom: 32px; }
+  .btn-primary { background: var(--coral); color: white; border: none; border-radius: 30px; padding: 15px 40px; font-size: 17px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 4px 16px rgba(255,111,97,0.4); transition: transform 0.1s; }
+  .btn-primary:active { transform: scale(0.98); }
+  .dots { display: flex; gap: 6px; justify-content: center; padding: 14px; }
+  .dot { width: 8px; height: 8px; border-radius: 4px; background: var(--lavender); transition: all 0.3s; }
+  .dot.active { width: 24px; background: var(--coral); }
+
+  /* Onboarding step 2 */
+  .ob-question { font-size: 26px; font-weight: 800; color: var(--indigo); text-align: center; margin-bottom: 8px; line-height: 1.2; }
+  .ob-question-sub { font-size: 13px; color: var(--mid); text-align: center; margin-bottom: 24px; }
+  .focus-options { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .focus-opt { display: flex; align-items: center; background: white; border-radius: 14px; padding: 16px; border: 2px solid transparent; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(63,78,118,0.08); }
+  .focus-opt.selected { border-color: var(--coral); background: #fff5f5; }
+  .focus-opt-emoji { font-size: 26px; margin-right: 14px; }
+  .focus-opt-label { font-size: 15px; font-weight: 600; color: var(--text); }
+  .focus-opt-desc { font-size: 12px; color: var(--light); }
+  .focus-check { margin-left: auto; color: var(--coral); font-size: 18px; font-weight: 700; }
+
+  /* ── TAB BAR ── */
+  .tab-bar { height: 68px; background: white; border-top: 2px solid var(--blush); display: flex; flex-shrink: 0; }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; transition: all 0.15s; border: none; background: none; }
+  .tab-emoji { font-size: 22px; opacity: 0.45; transition: all 0.15s; }
+  .tab-label { font-size: 10px; color: var(--light); font-weight: 600; }
+  .tab.active .tab-emoji { font-size: 24px; opacity: 1; }
+  .tab.active .tab-label { color: var(--coral); }
+
+  /* ── HOME ── */
+  #home { background: var(--blush); }
+  .home-scroll { flex: 1; overflow-y: auto; padding: 8px 18px 16px; }
+  .home-scroll::-webkit-scrollbar { display: none; }
+  .home-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 18px; }
+  .home-greeting { font-size: 14px; color: var(--mid); }
+  .home-name { font-size: 28px; font-weight: 800; color: var(--indigo); }
+  .affirmation-banner { background: var(--indigo); border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; margin-bottom: 22px; cursor: pointer; box-shadow: 0 4px 16px rgba(63,78,118,0.3); }
+  .aff-emoji { font-size: 26px; margin-right: 12px; }
+  .aff-text { flex: 1; }
+  .aff-label { color: var(--gold); font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
+  .aff-preview { color: white; font-size: 13px; line-height: 1.4; }
+  .aff-arrow { color: var(--gold); font-size: 24px; }
+  .section-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--indigo); }
+  .see-all { font-size: 13px; color: var(--coral); font-weight: 600; cursor: pointer; }
+  .mood-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0 20px; }
+  .mood-btn { border-radius: 14px; padding: 16px 10px; display: flex; flex-direction: column; align-items: center; border: none; cursor: pointer; transition: transform 0.1s; }
+  .mood-btn:active { transform: scale(0.97); }
+  .mood-emoji { font-size: 28px; margin-bottom: 6px; }
+  .mood-label { font-size: 13px; font-weight: 600; color: var(--text); }
+  .mood-selected { display: flex; align-items: center; background: white; border-radius: 12px; padding: 12px 14px; margin-bottom: 18px; box-shadow: 0 2px 6px rgba(63,78,118,0.08); }
+  .mood-sel-emoji { font-size: 20px; margin-right: 8px; }
+  .mood-sel-text { flex: 1; font-size: 14px; color: var(--text); }
+  .mood-change { font-size: 12px; color: var(--coral); font-weight: 600; cursor: pointer; border: none; background: none; }
+
+  /* Card */
+  .enc-card { background: white; border-radius: 20px; padding: 22px; box-shadow: 0 4px 16px rgba(63,78,118,0.12); margin-bottom: 14px; }
+  .card-top-border { height: 4px; border-radius: 2px; margin: -22px -22px 18px; border-radius: 20px 20px 0 0; }
+  .cat-badge { display: flex; align-items: center; gap: 6px; margin-bottom: 14px; }
+  .cat-emoji { font-size: 15px; }
+  .cat-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--indigo); }
+  .card-text { font-size: 17px; line-height: 1.6; color: var(--text); margin-bottom: 16px; }
+  .scripture-box { background: var(--blush); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; }
+  .scripture-text { font-size: 12px; line-height: 1.7; color: var(--indigo); font-style: italic; }
+  .card-footer { display: flex; align-items: center; border-top: 1px solid var(--gray); padding-top: 12px; gap: 8px; cursor: pointer; }
+  .heart-icon { font-size: 20px; }
+  .save-label { font-size: 13px; color: var(--mid); }
+
+  .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+  .quick-btn { border-radius: 16px; padding: 18px 12px; display: flex; flex-direction: column; align-items: center; border: none; cursor: pointer; }
+  .quick-emoji { font-size: 26px; margin-bottom: 8px; }
+  .quick-label { font-size: 12px; font-weight: 600; color: var(--text); text-align: center; }
+
+  /* ── ENCOURAGEMENT ── */
+  #encouragement { background: var(--blush); }
+  .enc-header { padding: 12px 18px 6px; }
+  .enc-title { font-size: 26px; font-weight: 800; color: var(--indigo); }
+  .enc-sub { font-size: 12px; color: var(--mid); margin-top: 2px; }
+  .cat-scroll { display: flex; gap: 8px; padding: 10px 18px; overflow-x: auto; flex-shrink: 0; }
+  .cat-scroll::-webkit-scrollbar { display: none; }
+  .cat-chip { display: flex; align-items: center; gap: 4px; background: white; border-radius: 20px; padding: 7px 14px; white-space: nowrap; cursor: pointer; font-size: 13px; color: var(--mid); font-weight: 500; box-shadow: 0 1px 4px rgba(63,78,118,0.1); border: 2px solid transparent; transition: all 0.2s; flex-shrink: 0; }
+  .cat-chip.active { border-color: var(--coral); background: #fff0ef; color: var(--indigo); font-weight: 700; }
+  .cards-area { flex: 1; padding: 8px 18px; position: relative; display: flex; align-items: center; justify-content: center; }
+  .card-stack { width: 100%; position: relative; height: 340px; }
+  .card-back { position: absolute; top: 8px; left: 0; right: 0; transform: scale(0.95); opacity: 0.7; pointer-events: none; }
+  .card-front { position: absolute; top: 0; left: 0; right: 0; cursor: grab; transition: transform 0.05s; }
+  .card-front:active { cursor: grabbing; }
+  .swipe-hint { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 8px; }
+  .swipe-arrow { font-size: 22px; color: var(--light); }
+  .swipe-text { font-size: 12px; color: var(--light); }
+  .scripture-toggle { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 6px; }
+  .toggle-label { font-size: 13px; color: var(--mid); }
+  .toggle { width: 42px; height: 24px; border-radius: 12px; background: var(--light); position: relative; cursor: pointer; transition: background 0.2s; border: none; }
+  .toggle.on { background: var(--coral); }
+  .toggle-thumb { width: 18px; height: 18px; background: white; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .toggle.on .toggle-thumb { left: 21px; }
+  .card-counter { text-align: center; font-size: 11px; color: var(--light); padding-bottom: 6px; }
+
+  /* ── AFFIRMATION ── */
+  #affirmation { background: var(--indigo); }
+  #affirmation .status-bar { color: white; }
+  .aff-screen-scroll { flex: 1; overflow-y: auto; padding: 0 18px 20px; }
+  .aff-screen-scroll::-webkit-scrollbar { display: none; }
+  .aff-screen-header { padding: 16px 0 28px; text-align: center; }
+  .aff-screen-title { font-size: 26px; font-weight: 800; color: var(--gold); }
+  .aff-screen-sub { font-size: 14px; color: var(--lavender); margin-top: 4px; }
+  .player-area { display: flex; flex-direction: column; align-items: center; margin-bottom: 28px; }
+  .play-btn { width: 90px; height: 90px; border-radius: 50%; background: var(--coral); border: none; font-size: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 6px 24px rgba(255,111,97,0.5); transition: transform 0.1s; color: white; }
+  .play-btn:active { transform: scale(0.95); }
+  .play-btn.playing { animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.07)} }
+  .play-label { font-size: 14px; color: var(--lavender); font-weight: 600; }
+  .aff-card { background: rgba(255,255,255,0.1); border-radius: 20px; padding: 22px; margin-bottom: 18px; border: 1px solid rgba(255,255,255,0.2); }
+  .quote-mark { font-size: 44px; color: var(--gold); line-height: 0.8; font-weight: 700; }
+  .quote-close { text-align: right; margin-top: 8px; }
+  .aff-card-text { font-size: 19px; line-height: 1.65; color: white; text-align: center; margin: 10px 0; }
+  .done-msg { background: var(--blush); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .done-msg-text { font-size: 14px; color: var(--indigo); font-style: italic; line-height: 1.5; flex: 1; }
+  .other-title { font-size: 15px; font-weight: 700; color: var(--lavender); margin-bottom: 10px; }
+  .other-aff { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 13px 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: all 0.2s; }
+  .other-aff.active { background: rgba(255,111,97,0.25); border-color: var(--coral); }
+  .other-num { font-size: 12px; color: var(--lavender); font-weight: 700; width: 18px; text-align: center; }
+  .other-text { font-size: 13px; color: white; line-height: 1.4; flex: 1; }
+  .today-badge { background: var(--gold); border-radius: 8px; padding: 3px 8px; font-size: 10px; font-weight: 700; color: var(--indigo); }
+
+  /* ── FAVORITES ── */
+  #favorites { background: var(--blush); }
+  .fav-header { padding: 12px 18px 14px; }
+  .fav-title { font-size: 26px; font-weight: 800; color: var(--indigo); }
+  .fav-count { font-size: 13px; color: var(--mid); margin-top: 3px; }
+  .fav-scroll { flex: 1; overflow-y: auto; padding: 0 18px 16px; }
+  .fav-scroll::-webkit-scrollbar { display: none; }
+  .fav-card-wrap { margin-bottom: 14px; }
+  .remove-btn { text-align: right; font-size: 11px; color: var(--light); text-decoration: underline; cursor: pointer; padding: 4px 4px; border: none; background: none; }
+  .empty-fav { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; }
+  .empty-emoji { font-size: 60px; margin-bottom: 18px; }
+  .empty-title { font-size: 20px; font-weight: 700; color: var(--indigo); margin-bottom: 12px; }
+  .empty-body { font-size: 14px; color: var(--mid); text-align: center; line-height: 1.7; margin-bottom: 18px; }
+  .empty-hint { background: white; border-radius: 12px; padding: 10px 16px; font-size: 12px; color: var(--light); text-align: center; }
+
+  /* ── SETTINGS ── */
+  #settings { background: var(--blush); }
+  .settings-scroll { flex: 1; overflow-y: auto; padding: 0 18px 20px; }
+  .settings-scroll::-webkit-scrollbar { display: none; }
+  .settings-header { padding: 12px 0 20px; }
+  .settings-title { font-size: 26px; font-weight: 800; color: var(--indigo); }
+  .settings-section-label { font-size: 11px; font-weight: 700; color: var(--mid); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; padding-left: 4px; }
+  .settings-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(63,78,118,0.08); margin-bottom: 20px; }
+  .setting-row { display: flex; align-items: center; padding: 16px; border-top: 1px solid var(--gray); }
+  .setting-row:first-child { border-top: none; }
+  .setting-info { flex: 1; margin-right: 12px; }
+  .setting-label { font-size: 15px; font-weight: 600; color: var(--text); }
+  .setting-desc { font-size: 12px; color: var(--light); margin-top: 2px; }
+  .ios-toggle { width: 44px; height: 26px; border-radius: 13px; background: #ccc; position: relative; cursor: pointer; border: none; transition: background 0.25s; flex-shrink: 0; }
+  .ios-toggle.on { background: var(--coral); }
+  .ios-toggle-thumb { width: 20px; height: 20px; background: white; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: left 0.25s; box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+  .ios-toggle.on .ios-toggle-thumb { left: 21px; }
+  .time-chips { display: flex; gap: 8px; padding: 0 16px 14px; flex-wrap: wrap; }
+  .time-chip { padding: 6px 12px; border-radius: 18px; background: var(--gray); font-size: 12px; color: var(--mid); font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+  .time-chip.active { background: rgba(255,111,97,0.15); border-color: var(--coral); color: var(--coral); font-weight: 700; }
+  .notif-note { font-size: 11px; color: var(--light); text-align: center; margin-top: 6px; font-style: italic; }
+  .about-row { display: flex; align-items: center; gap: 14px; padding: 16px; border-bottom: 1px solid var(--gray); }
+  .about-emoji { font-size: 34px; }
+  .about-name { font-size: 16px; font-weight: 700; color: var(--indigo); }
+  .about-ver { font-size: 12px; color: var(--light); }
+  .about-mission { padding: 14px 16px; font-size: 13px; color: var(--mid); line-height: 1.6; font-style: italic; }
+  .tone-card { background: var(--indigo); border-radius: 16px; padding: 18px; display: flex; align-items: center; gap: 12px; }
+  .tone-text { flex: 1; font-size: 13px; color: var(--lavender); line-height: 1.6; font-style: italic; }
+
+  /* Animations */
+  .screen-transition { animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .swipe-demo { animation: swipeDemo 3s infinite; }
+  @keyframes swipeDemo { 0%,70%,100% { transform: translateX(0) rotate(0deg); } 35% { transform: translateX(-18px) rotate(-3deg); } }
+
+  /* Affirmation wave rings */
+  .wave-ring { position: absolute; width: 90px; height: 90px; border-radius: 50%; background: var(--coral); opacity: 0; pointer-events: none; }
+  .wave-ring.playing { animation: ringPulse 1.8s infinite; }
+  .wave-ring:nth-child(2) { animation-delay: 0.4s; }
+  @keyframes ringPulse { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(2); opacity: 0; } }
+
+  /* Hint pill */
+  .hint-pill { background: rgba(255,255,255,0.15); border-radius: 20px; padding: 6px 14px; font-size: 11px; color: rgba(255,255,255,0.6); text-align: center; margin: 0 auto 16px; width: fit-content; }
+</style>
+</head>
+<body>
+
+<h1 class="preview-title">🐻 Mama Bear — Interactive Preview</h1>
+<p class="preview-sub">Click the tabs to explore all screens</p>
+
+<div class="phone-wrap">
+  <div class="phone">
+    <div class="notch"></div>
+
+    <!-- STATUS BAR -->
+    <div class="status-bar" id="statusBar">
+      <span class="status-time">9:41</span>
+      <span class="status-icons">●●● 🔋</span>
+    </div>
+
+    <!-- ══ ONBOARDING ══ -->
+    <div class="screen active screen-transition" id="onboarding">
+      <div class="dots"><div class="dot active" id="dot0"></div><div class="dot" id="dot1"></div></div>
+      <div class="ob-body" id="ob-step-0">
+        <div class="bear-icon">
+          <div class="bear-ear bear-ear-l"></div><div class="bear-ear bear-ear-r"></div>
+          <div class="bear-inner-ear bear-inner-ear-l"></div><div class="bear-inner-ear bear-inner-ear-r"></div>
+          <div class="bear-head"></div>
+          <div class="bear-face">
+            <div class="bear-eye bear-eye-l"></div><div class="bear-eye bear-eye-r"></div>
+            <div class="bear-snout"><div class="bear-nose"></div></div>
+          </div>
+          <div class="bear-heart">❤️</div>
+        </div>
+        <p class="ob-title">Welcome to<br>Mama Bear 🐻</p>
+        <p class="ob-body-text">A gentle daily companion made just for moms like you. In under 60 seconds, find the encouragement and peace you deserve.</p>
+        <button class="btn-primary" onclick="obNext()">Let's get started</button>
+      </div>
+      <div class="ob-body" id="ob-step-1" style="display:none;">
+        <p class="ob-question">What do you need<br>most right now?</p>
+        <p class="ob-question-sub">Choose one — you can always change this later.</p>
+        <div class="focus-options">
+          <div class="focus-opt" id="opt-enc" onclick="selectFocus('enc')">
+            <span class="focus-opt-emoji">💌</span>
+            <div><div class="focus-opt-label">Daily Encouragement</div><div class="focus-opt-desc">A little boost to start each day</div></div>
+          </div>
+          <div class="focus-opt" id="opt-faith" onclick="selectFocus('faith')">
+            <span class="focus-opt-emoji">✨</span>
+            <div><div class="focus-opt-label">Faith & Hope</div><div class="focus-opt-desc">Scripture and spiritual nourishment</div></div>
+          </div>
+          <div class="focus-opt" id="opt-support" onclick="selectFocus('support')">
+            <span class="focus-opt-emoji">🤗</span>
+            <div><div class="focus-opt-label">Emotional Support</div><div class="focus-opt-desc">Someone in your corner, always</div></div>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="finishOnboarding()">Enter Mama Bear ›</button>
+      </div>
+    </div>
+
+    <!-- ══ HOME ══ -->
+    <div class="screen" id="home">
+      <div class="home-scroll">
+        <div class="home-header">
+          <div><div class="home-greeting">Good morning,</div><div class="home-name">mama 🐻</div></div>
+          <div class="bear-icon" style="width:52px;height:52px;">
+            <div class="bear-ear bear-ear-l" style="width:14px;height:14px;top:2px;left:4px;"></div>
+            <div class="bear-ear bear-ear-r" style="width:14px;height:14px;top:2px;right:4px;"></div>
+            <div class="bear-inner-ear bear-inner-ear-l" style="width:8px;height:8px;top:5px;left:7px;"></div>
+            <div class="bear-inner-ear bear-inner-ear-r" style="width:8px;height:8px;top:5px;right:7px;"></div>
+            <div class="bear-head" style="width:46px;height:46px;top:0;left:3px;"></div>
+            <div class="bear-face" style="width:36px;height:36px;top:6px;left:8px;">
+              <div class="bear-eye bear-eye-l" style="width:5px;height:5px;top:11px;left:10px;"></div>
+              <div class="bear-eye bear-eye-r" style="width:5px;height:5px;top:11px;right:10px;"></div>
+              <div class="bear-snout" style="width:16px;height:10px;top:20px;left:10px;"><div class="bear-nose" style="width:6px;height:4px;margin-top:2px;"></div></div>
+            </div>
+            <div class="bear-heart" style="font-size:10px;">❤️</div>
+          </div>
+        </div>
+        <div class="affirmation-banner" onclick="switchTab('affirmation')">
+          <span class="aff-emoji">🌟</span>
+          <div class="aff-text">
+            <div class="aff-label">Today's Affirmation</div>
+            <div class="aff-preview">I am present. I am patient. I am doing my best...</div>
+          </div>
+          <span class="aff-arrow">›</span>
+        </div>
+
+        <!-- Mood check-in -->
+        <div id="mood-checkin">
+          <div class="section-title" style="margin-bottom:10px;">How are you feeling today?</div>
+          <div class="mood-grid">
+            <button class="mood-btn" style="background:rgba(168,216,234,0.4);" onclick="selectMood('calm','😌','Calm')"><span class="mood-emoji">😌</span><span class="mood-label">Calm</span></button>
+            <button class="mood-btn" style="background:rgba(199,184,234,0.4);" onclick="selectMood('okay','🙂','Okay')"><span class="mood-emoji">🙂</span><span class="mood-label">Okay</span></button>
+            <button class="mood-btn" style="background:rgba(250,218,221,0.7);" onclick="selectMood('overwhelmed','😰','Overwhelmed')"><span class="mood-emoji">😰</span><span class="mood-label">Overwhelmed</span></button>
+            <button class="mood-btn" style="background:rgba(235,199,62,0.3);" onclick="selectMood('exhausted','😴','Exhausted')"><span class="mood-emoji">😴</span><span class="mood-label">Exhausted</span></button>
+          </div>
+        </div>
+        <div id="mood-selected" style="display:none;">
+          <div class="mood-selected">
+            <span class="mood-sel-emoji" id="sel-emoji">😌</span>
+            <span class="mood-sel-text">Feeling <span id="sel-label">calm</span> today</span>
+            <button class="mood-change" onclick="resetMood()">Change</button>
+          </div>
+        </div>
+
+        <div class="section-row">
+          <div class="section-title" id="card-section-label">Today's Encouragement</div>
+          <span class="see-all" onclick="switchTab('encouragement')">See all ›</span>
+        </div>
+        <div class="enc-card">
+          <div class="card-top-border" style="background:var(--blush);"></div>
+          <div class="cat-badge"><span class="cat-emoji">🐻</span><span class="cat-label">Motherhood</span></div>
+          <div class="card-text" id="home-card-text">"You're carrying more than most people realize — and you're still showing up. That matters."</div>
+          <div class="scripture-box">
+            <div class="scripture-text">She is clothed with strength and dignity; she can laugh at the days to come. — Proverbs 31:25</div>
+          </div>
+          <div class="card-footer" onclick="toggleHeart(this)">
+            <span class="heart-icon">🤍</span>
+            <span class="save-label">Save this</span>
+          </div>
+        </div>
+        <div class="quick-actions">
+          <button class="quick-btn" style="background:rgba(255,111,97,0.15);" onclick="switchTab('encouragement')">
+            <span class="quick-emoji">💌</span><span class="quick-label">More Encouragement</span>
+          </button>
+          <button class="quick-btn" style="background:rgba(199,184,234,0.25);" onclick="switchTab('favorites')">
+            <span class="quick-emoji">❤️</span><span class="quick-label">My Favorites</span>
+          </button>
+        </div>
+      </div>
+      <div class="tab-bar" id="tabs-home"><div class="tab active" onclick="switchTab('home')"><span class="tab-emoji">🏠</span><span class="tab-label">Home</span></div><div class="tab" onclick="switchTab('encouragement')"><span class="tab-emoji">💌</span><span class="tab-label">Encouragement</span></div><div class="tab" onclick="switchTab('affirmation')"><span class="tab-emoji">🌟</span><span class="tab-label">Affirmation</span></div><div class="tab" onclick="switchTab('favorites')"><span class="tab-emoji">❤️</span><span class="tab-label">Favorites</span></div><div class="tab" onclick="switchTab('settings')"><span class="tab-emoji">⚙️</span><span class="tab-label">Settings</span></div></div>
+    </div>
+
+    <!-- ══ ENCOURAGEMENT ══ -->
+    <div class="screen" id="encouragement">
+      <div class="enc-header"><div class="enc-title">Encouragement 💌</div><div class="enc-sub">Swipe to explore · Tap heart to save</div></div>
+      <div class="cat-scroll">
+        <div class="cat-chip active" onclick="selectCat(this)">💌 All</div>
+        <div class="cat-chip" onclick="selectCat(this)">✨ Faith</div>
+        <div class="cat-chip" onclick="selectCat(this)">🐻 Motherhood</div>
+        <div class="cat-chip" onclick="selectCat(this)">💪 Strength</div>
+        <div class="cat-chip" onclick="selectCat(this)">🌙 Rest</div>
+      </div>
+      <div class="cards-area">
+        <div class="card-stack">
+          <div class="enc-card card-back" style="position:absolute;top:8px;left:0;right:0;">
+            <div class="card-top-border" style="background:var(--lavender);"></div>
+            <div class="cat-badge"><span class="cat-emoji">✨</span><span class="cat-label">Faith</span></div>
+            <div class="card-text">"You were chosen for this child, in this season, with exactly the love you have."</div>
+          </div>
+          <div class="enc-card card-front swipe-demo" id="swipe-card" style="position:absolute;top:0;left:0;right:0;" ondragstart="return false;">
+            <div class="card-top-border" style="background:var(--blush);"></div>
+            <div class="cat-badge"><span class="cat-emoji">🐻</span><span class="cat-label">Motherhood</span></div>
+            <div class="card-text">"You're carrying more than most people realize — and you're still showing up. That matters."</div>
+            <div class="scripture-box"><div class="scripture-text">She is clothed with strength and dignity; she can laugh at the days to come. — Proverbs 31:25</div></div>
+            <div class="card-footer" onclick="toggleHeart(this)"><span class="heart-icon">🤍</span><span class="save-label">Save this</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="swipe-hint"><span class="swipe-arrow">‹</span><span class="swipe-text">Swipe to browse</span><span class="swipe-arrow">›</span></div>
+      <div class="scripture-toggle">
+        <span class="toggle-label">Include scripture</span>
+        <button class="toggle on" id="scrToggle" onclick="toggleScripture()"><div class="toggle-thumb"></div></button>
+      </div>
+      <div class="card-counter">1 of 15</div>
+      <div class="tab-bar"><div class="tab" onclick="switchTab('home')"><span class="tab-emoji">🏠</span><span class="tab-label">Home</span></div><div class="tab active" onclick="switchTab('encouragement')"><span class="tab-emoji">💌</span><span class="tab-label">Encouragement</span></div><div class="tab" onclick="switchTab('affirmation')"><span class="tab-emoji">🌟</span><span class="tab-label">Affirmation</span></div><div class="tab" onclick="switchTab('favorites')"><span class="tab-emoji">❤️</span><span class="tab-label">Favorites</span></div><div class="tab" onclick="switchTab('settings')"><span class="tab-emoji">⚙️</span><span class="tab-label">Settings</span></div></div>
+    </div>
+
+    <!-- ══ AFFIRMATION ══ -->
+    <div class="screen" id="affirmation">
+      <div class="status-bar" style="color:white;"><span class="status-time">9:41</span><span class="status-icons">●●● 🔋</span></div>
+      <div class="aff-screen-scroll">
+        <div class="aff-screen-header"><div class="aff-screen-title">Daily Affirmation 🌟</div><div class="aff-screen-sub">Speak this over yourself today</div></div>
+        <div class="player-area">
+          <div style="position:relative;width:90px;height:90px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
+            <div class="wave-ring" id="ring1"></div>
+            <div class="wave-ring" id="ring2" style="animation-delay:0.4s;"></div>
+            <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+          </div>
+          <span class="play-label" id="playLabel">Play affirmation</span>
+        </div>
+        <div class="aff-card">
+          <div class="quote-mark">"</div>
+          <div class="aff-card-text">I am present. I am patient. I am doing my best, and that is enough.</div>
+          <div class="quote-mark quote-close">"</div>
+        </div>
+        <div class="done-msg" id="doneMsg" style="display:none;"><span style="font-size:22px;">✨</span><span class="done-msg-text">You are seen. You are loved. You are enough.</span></div>
+        <div class="other-title">More affirmations</div>
+        <div class="other-aff active"><span class="other-num">1</span><span class="other-text">I am present. I am patient. I am doing my best, and that is enough.</span><span class="today-badge">Today</span></div>
+        <div class="other-aff"><span class="other-num">2</span><span class="other-text">I am a good mother. My love is steady, even when I feel unsure.</span></div>
+        <div class="other-aff"><span class="other-num">3</span><span class="other-text">I give myself grace today. I don't have to earn rest — I deserve it.</span></div>
+        <div class="other-aff"><span class="other-num">4</span><span class="other-text">I am exactly the mother my child needs. My love is unique and irreplaceable.</span></div>
+        <div class="other-aff"><span class="other-num">5</span><span class="other-text">Today I choose peace. I release what I cannot control.</span></div>
+      </div>
+      <div class="tab-bar" style="background:rgba(255,255,255,0.08);border-top-color:rgba(255,255,255,0.1);">
+        <div class="tab" onclick="switchTab('home')" style="color:rgba(255,255,255,0.5);"><span class="tab-emoji" style="opacity:0.4;">🏠</span><span class="tab-label" style="color:rgba(255,255,255,0.4);">Home</span></div>
+        <div class="tab" onclick="switchTab('encouragement')"><span class="tab-emoji" style="opacity:0.4;">💌</span><span class="tab-label" style="color:rgba(255,255,255,0.4);">Encouragement</span></div>
+        <div class="tab active" onclick="switchTab('affirmation')"><span class="tab-emoji">🌟</span><span class="tab-label" style="color:var(--coral);">Affirmation</span></div>
+        <div class="tab" onclick="switchTab('favorites')"><span class="tab-emoji" style="opacity:0.4;">❤️</span><span class="tab-label" style="color:rgba(255,255,255,0.4);">Favorites</span></div>
+        <div class="tab" onclick="switchTab('settings')"><span class="tab-emoji" style="opacity:0.4;">⚙️</span><span class="tab-label" style="color:rgba(255,255,255,0.4);">Settings</span></div>
+      </div>
+    </div>
+
+    <!-- ══ FAVORITES ══ -->
+    <div class="screen" id="favorites">
+      <div class="fav-header"><div class="fav-title">My Encouragements ❤️</div><div class="fav-count" id="fav-count">0 saved messages</div></div>
+      <div id="fav-empty" class="empty-fav">
+        <div class="empty-emoji">🤍</div>
+        <div class="empty-title">Nothing saved yet</div>
+        <div class="empty-body">When an encouragement speaks to you, tap the heart to save it here. Come back anytime you need a reminder.</div>
+        <div class="empty-hint">Go to Encouragement and tap 🤍 on any card</div>
+      </div>
+      <div id="fav-list" class="fav-scroll" style="display:none;"></div>
+      <div class="tab-bar"><div class="tab" onclick="switchTab('home')"><span class="tab-emoji">🏠</span><span class="tab-label">Home</span></div><div class="tab" onclick="switchTab('encouragement')"><span class="tab-emoji">💌</span><span class="tab-label">Encouragement</span></div><div class="tab" onclick="switchTab('affirmation')"><span class="tab-emoji">🌟</span><span class="tab-label">Affirmation</span></div><div class="tab active" onclick="switchTab('favorites')"><span class="tab-emoji">❤️</span><span class="tab-label">Favorites</span></div><div class="tab" onclick="switchTab('settings')"><span class="tab-emoji">⚙️</span><span class="tab-label">Settings</span></div></div>
+    </div>
+
+    <!-- ══ SETTINGS ══ -->
+    <div class="screen" id="settings">
+      <div class="settings-scroll">
+        <div class="settings-header"><div class="settings-title">Settings ⚙️</div></div>
+
+        <div class="settings-section-label">Content</div>
+        <div class="settings-card" style="margin-bottom:20px;">
+          <div class="setting-row" style="border-top:none;">
+            <div class="setting-info"><div class="setting-label">Include Scripture</div><div class="setting-desc">Show Bible verses with encouragements</div></div>
+            <button class="ios-toggle on" id="scrToggleSettings" onclick="toggleSettingsToggle(this)"><div class="ios-toggle-thumb"></div></button>
+          </div>
+        </div>
+
+        <div class="settings-section-label">Daily Encouragements</div>
+        <div class="settings-card">
+          <div class="setting-row" style="border-top:none;">
+            <div class="setting-info"><div class="setting-label">🌅 Morning</div><div class="setting-desc">Start your day with encouragement</div></div>
+            <button class="ios-toggle on" id="morningToggle" onclick="toggleSettingsToggle(this);toggleTimeChips('morningTimes')"><div class="ios-toggle-thumb"></div></button>
+          </div>
+          <div id="morningTimes" class="time-chips">
+            <div class="time-chip" onclick="selectTime(this,'morningTimes')">6:00 AM</div>
+            <div class="time-chip" onclick="selectTime(this,'morningTimes')">7:00 AM</div>
+            <div class="time-chip active" onclick="selectTime(this,'morningTimes')">8:00 AM</div>
+            <div class="time-chip" onclick="selectTime(this,'morningTimes')">9:00 AM</div>
+            <div class="time-chip" onclick="selectTime(this,'morningTimes')">10:00 AM</div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info"><div class="setting-label">🌙 Evening</div><div class="setting-desc">Wind down with gentle words</div></div>
+            <button class="ios-toggle" id="eveningToggle" onclick="toggleSettingsToggle(this);toggleTimeChips('eveningTimes')"><div class="ios-toggle-thumb"></div></button>
+          </div>
+          <div id="eveningTimes" class="time-chips" style="display:none;">
+            <div class="time-chip" onclick="selectTime(this,'eveningTimes')">6:00 PM</div>
+            <div class="time-chip" onclick="selectTime(this,'eveningTimes')">7:00 PM</div>
+            <div class="time-chip active" onclick="selectTime(this,'eveningTimes')">8:00 PM</div>
+            <div class="time-chip" onclick="selectTime(this,'eveningTimes')">9:00 PM</div>
+          </div>
+        </div>
+        <div class="notif-note">Notifications are gentle and never guilt-based. You can turn them off anytime. 🐻</div>
+
+        <div class="settings-section-label" style="margin-top:20px;">About</div>
+        <div class="settings-card" style="margin-bottom:20px;">
+          <div class="about-row"><span class="about-emoji">🐻</span><div><div class="about-name">Mama Bear</div><div class="about-ver">Version 1.0.0 MVP</div></div></div>
+          <div class="about-mission">Made with love for every mama who carries more than she shows — and still shows up every single day.</div>
+        </div>
+        <div class="tone-card"><span style="font-size:26px;">💌</span><span class="tone-text">Mama Bear is here to support, never to pressure. Rest is welcome here.</span></div>
+      </div>
+      <div class="tab-bar"><div class="tab" onclick="switchTab('home')"><span class="tab-emoji">🏠</span><span class="tab-label">Home</span></div><div class="tab" onclick="switchTab('encouragement')"><span class="tab-emoji">💌</span><span class="tab-label">Encouragement</span></div><div class="tab" onclick="switchTab('affirmation')"><span class="tab-emoji">🌟</span><span class="tab-label">Affirmation</span></div><div class="tab" onclick="switchTab('favorites')"><span class="tab-emoji">❤️</span><span class="tab-label">Favorites</span></div><div class="tab active" onclick="switchTab('settings')"><span class="tab-emoji">⚙️</span><span class="tab-label">Settings</span></div></div>
+    </div>
+
+  </div><!-- /phone -->
+</div><!-- /phone-wrap -->
+
+<script>
+  // ── State ──
+  let currentScreen = 'onboarding';
+  let favorites = [];
+  let isPlaying = false;
+  let playTimer = null;
+
+  const CARDS = [
+    { cat: 'Motherhood', emoji: '🐻', color: 'var(--blush)', text: 'You\'re carrying more than most people realize — and you\'re still showing up. That matters.', scripture: 'She is clothed with strength and dignity. — Proverbs 31:25' },
+    { cat: 'Strength', emoji: '💪', color: 'var(--coral)', text: 'The fact that you worry about being a good mom means you already are one.', scripture: 'I can do all things through Christ who strengthens me. — Philippians 4:13' },
+    { cat: 'Rest', emoji: '🌙', color: '#A8D8EA', text: 'Rest is not a reward for finishing everything. Rest is part of taking care of everything — including yourself.', scripture: 'Come to me, all who are weary and burdened, and I will give you rest. — Matthew 11:28' },
+    { cat: 'Faith', emoji: '✨', color: 'var(--lavender)', text: 'You were chosen for this child, in this season, with exactly the love you have. You are enough.', scripture: 'Before I formed you in the womb I knew you. — Jeremiah 1:5' },
+    { cat: 'Motherhood', emoji: '🐻', color: 'var(--blush)', text: 'Today doesn\'t have to be perfect. Just present. Your children need you, not a performance.', scripture: null },
+  ];
+  let cardIndex = 0;
+  let scriptureOn = true;
+
+  const MOOD_CARDS = {
+    calm: { text: 'You\'re in a good place today. Soak it in, mama. You deserve this peace.', label: 'Made for you today' },
+    okay: { text: 'Okay is enough. You don\'t have to be amazing today — you just have to be you.', label: 'Made for you today' },
+    overwhelmed: { text: 'You don\'t have to carry it all at once. Just this moment. Just this breath. You\'re doing it.', label: 'Made for you today' },
+    exhausted: { text: 'Rest is not giving up. Rest is brave. You\'ve given enough today. Let yourself land.', label: 'Made for you today' },
+  };
+
+  // ── Onboarding ──
+  function obNext() {
+    document.getElementById('ob-step-0').style.display = 'none';
+    document.getElementById('ob-step-1').style.display = 'flex';
+    document.getElementById('dot0').classList.remove('active');
+    document.getElementById('dot1').classList.add('active');
+  }
+  let focusSelected = null;
+  function selectFocus(id) {
+    ['enc','faith','support'].forEach(o => document.getElementById('opt-'+o).classList.remove('selected'));
+    document.getElementById('opt-'+id).classList.add('selected');
+    focusSelected = id;
+  }
+  function finishOnboarding() {
+    showScreen('home');
+  }
+
+  // ── Screen switching ──
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); });
+    const el = document.getElementById(id);
+    el.classList.add('active');
+    el.classList.add('screen-transition');
+    setTimeout(() => el.classList.remove('screen-transition'), 400);
+    currentScreen = id;
+
+    // Status bar color for affirmation
+    const sb = document.getElementById('statusBar');
+    if (id === 'affirmation') sb.style.display = 'none';
+    else sb.style.display = '';
+  }
+  function switchTab(id) { showScreen(id); }
+
+  // ── Mood ──
+  function selectMood(id, emoji, label) {
+    document.getElementById('mood-checkin').style.display = 'none';
+    document.getElementById('mood-selected').style.display = 'block';
+    document.getElementById('sel-emoji').textContent = emoji;
+    document.getElementById('sel-label').textContent = label.toLowerCase();
+    const card = MOOD_CARDS[id];
+    document.getElementById('home-card-text').textContent = '"' + card.text + '"';
+    document.getElementById('card-section-label').textContent = card.label;
+  }
+  function resetMood() {
+    document.getElementById('mood-checkin').style.display = 'block';
+    document.getElementById('mood-selected').style.display = 'none';
+    document.getElementById('home-card-text').textContent = '"You\'re carrying more than most people realize — and you\'re still showing up. That matters."';
+    document.getElementById('card-section-label').textContent = "Today's Encouragement";
+  }
+
+  // ── Heart / Favorites ──
+  function toggleHeart(footer) {
+    const icon = footer.querySelector('.heart-icon');
+    const lbl = footer.querySelector('.save-label');
+    if (icon.textContent === '🤍') {
+      icon.textContent = '❤️';
+      lbl.textContent = 'Saved to favorites';
+      addFavorite();
+    } else {
+      icon.textContent = '🤍';
+      lbl.textContent = 'Save this';
+      removeFavorite();
+    }
+  }
+  function addFavorite() {
+    const card = CARDS[cardIndex % CARDS.length];
+    favorites.push(card);
+    updateFavoritesScreen();
+  }
+  function removeFavorite() {
+    favorites.pop();
+    updateFavoritesScreen();
+  }
+  function updateFavoritesScreen() {
+    const count = favorites.length;
+    document.getElementById('fav-count').textContent = count + ' saved message' + (count !== 1 ? 's' : '');
+    const empty = document.getElementById('fav-empty');
+    const list = document.getElementById('fav-list');
+    if (count === 0) { empty.style.display = 'flex'; list.style.display = 'none'; return; }
+    empty.style.display = 'none'; list.style.display = 'block';
+    list.innerHTML = favorites.map((c, i) => `
+      <div class="fav-card-wrap">
+        <div class="enc-card">
+          <div class="card-top-border" style="background:${c.color};"></div>
+          <div class="cat-badge"><span class="cat-emoji">${c.emoji}</span><span class="cat-label">${c.cat}</span></div>
+          <div class="card-text">"${c.text}"</div>
+          ${c.scripture ? `<div class="scripture-box"><div class="scripture-text">${c.scripture}</div></div>` : ''}
+          <div class="card-footer"><span class="heart-icon">❤️</span><span class="save-label">Saved to favorites</span></div>
+        </div>
+        <button class="remove-btn" onclick="removeFavAt(${i})">Remove</button>
+      </div>
+    `).join('');
+  }
+  function removeFavAt(i) { favorites.splice(i, 1); updateFavoritesScreen(); }
+
+  // ── Encouragement cards ──
+  function selectCat(el) {
+    document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+  }
+  function toggleScripture() {
+    scriptureOn = !scriptureOn;
+    const t = document.getElementById('scrToggle');
+    t.classList.toggle('on', scriptureOn);
+  }
+
+  // Swipe simulation
+  const swipeCard = document.getElementById('swipe-card');
+  let startX = 0, dragging = false, currentX = 0;
+  if (swipeCard) {
+    swipeCard.addEventListener('mousedown', e => { startX = e.clientX; dragging = true; swipeCard.style.transition = 'none'; swipeCard.style.animation = 'none'; });
+    document.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      currentX = e.clientX - startX;
+      const rotate = currentX / 20;
+      swipeCard.style.transform = `translateX(${currentX}px) rotate(${rotate}deg)`;
+    });
+    document.addEventListener('mouseup', e => {
+      if (!dragging) return; dragging = false;
+      if (Math.abs(currentX) > 80) {
+        swipeCard.style.transition = 'transform 0.28s ease, opacity 0.2s';
+        swipeCard.style.transform = `translateX(${currentX > 0 ? 500 : -500}px) rotate(${currentX > 0 ? 20 : -20}deg)`;
+        swipeCard.style.opacity = '0';
+        cardIndex = (cardIndex + 1) % CARDS.length;
+        setTimeout(() => {
+          const c = CARDS[cardIndex];
+          swipeCard.querySelector('.cat-badge').innerHTML = `<span class="cat-emoji">${c.emoji}</span><span class="cat-label">${c.cat}</span>`;
+          swipeCard.querySelector('.card-text').textContent = '"' + c.text + '"';
+          let scr = swipeCard.querySelector('.scripture-box');
+          if (c.scripture) { if (!scr) { scr = document.createElement('div'); scr.className='scripture-box'; scr.innerHTML=`<div class="scripture-text">${c.scripture}</div>`; swipeCard.querySelector('.card-footer').before(scr); } else scr.querySelector('.scripture-text').textContent = c.scripture; } else if (scr) scr.remove();
+          swipeCard.querySelector('.card-top-border').style.background = c.color;
+          const foot = swipeCard.querySelector('.heart-icon'); foot.textContent = '🤍'; swipeCard.querySelector('.save-label').textContent = 'Save this';
+          swipeCard.style.transition = 'none'; swipeCard.style.transform = ''; swipeCard.style.opacity = '1';
+          setTimeout(() => { swipeCard.style.animation = 'swipeDemo 3s infinite'; }, 100);
+          document.querySelector('.card-counter').textContent = (cardIndex + 1) + ' of ' + CARDS.length;
+        }, 300);
+      } else {
+        swipeCard.style.transition = 'transform 0.3s spring';
+        swipeCard.style.transform = ''; currentX = 0;
+        setTimeout(() => swipeCard.style.animation = 'swipeDemo 3s infinite', 300);
+      }
+    });
+    swipeCard.addEventListener('touchstart', e => { startX = e.touches[0].clientX; dragging = true; swipeCard.style.transition = 'none'; swipeCard.style.animation = 'none'; }, {passive:true});
+    document.addEventListener('touchmove', e => { if (!dragging) return; currentX = e.touches[0].clientX - startX; swipeCard.style.transform = `translateX(${currentX}px) rotate(${currentX/20}deg)`; }, {passive:true});
+    document.addEventListener('touchend', () => { if (dragging) { dragging = false; document.dispatchEvent(new MouseEvent('mouseup')); } });
+  }
+
+  // ── Affirmation play ──
+  function togglePlay() {
+    isPlaying = !isPlaying;
+    const btn = document.getElementById('playBtn');
+    const lbl = document.getElementById('playLabel');
+    const ring1 = document.getElementById('ring1');
+    const ring2 = document.getElementById('ring2');
+    const done = document.getElementById('doneMsg');
+    if (isPlaying) {
+      btn.textContent = '⏸'; btn.classList.add('playing');
+      lbl.textContent = 'Playing...';
+      ring1.classList.add('playing'); ring2.classList.add('playing');
+      done.style.display = 'none';
+      clearTimeout(playTimer);
+      playTimer = setTimeout(() => {
+        isPlaying = false; btn.textContent = '▶'; btn.classList.remove('playing');
+        lbl.textContent = 'Play again'; ring1.classList.remove('playing'); ring2.classList.remove('playing');
+        done.style.display = 'flex';
+      }, 5000);
+    } else {
+      btn.textContent = '▶'; btn.classList.remove('playing');
+      lbl.textContent = 'Play affirmation';
+      ring1.classList.remove('playing'); ring2.classList.remove('playing');
+      clearTimeout(playTimer);
+    }
+  }
+
+  // ── Settings toggles ──
+  function toggleSettingsToggle(btn) {
+    btn.classList.toggle('on');
+  }
+  function toggleTimeChips(id) {
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+  }
+  function selectTime(chip, groupId) {
+    document.querySelectorAll('#' + groupId + ' .time-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  }
+</script>
+</body>
+</html>
